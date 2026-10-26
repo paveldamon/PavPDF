@@ -48,7 +48,7 @@ class SetupForm:Form {
   info.Text="Instalador conectado a GitHub\n\npaveldamon/PavPDF\n\nDescarga y verifica la última versión publicada. Después se abrirá su instalador.";
   install.Text="Descargar instalador";
 #else
-  info.Text="Editor y organizador de documentos PDF\n\nSe instalará para tu usuario, sin permisos de administrador. Incluye todas sus dependencias y funciona sin conexión.\n\nVersión 1.0.0 · Windows 10/11 de 64 bits";
+  info.Text="Editor y organizador de documentos PDF\n\nSe instalará para tu usuario, sin permisos de administrador. Incluye todas sus dependencias y funciona sin conexión.\n\nVersión 1.1.0 · Windows 10/11 de 64 bits";
   install.Text="Instalar PavPDF";
 #endif
   launch.Text="Abrir PavPDF al terminar";launch.Checked=true;launch.SetBounds(32,225,300,28);
@@ -83,10 +83,10 @@ class SetupForm:Form {
     if(Directory.Exists(app))Directory.Move(app,previous);
     try{Directory.Move(stage,app);}catch{if(Directory.Exists(previous))Directory.Move(previous,app);throw;}
     if(Directory.Exists(previous))Directory.Delete(previous,true);
-    File.WriteAllText(Path.Combine(InstallRoot,"pavpdf.install"),"PavPDF 1.0.0");
+    File.WriteAllText(Path.Combine(InstallRoot,"pavpdf.install"),"PavPDF 1.1.0");
     File.Copy(Application.ExecutablePath,Path.Combine(InstallRoot,"Uninstall.exe"),true);
     using(var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\PavPDF")){
-     key.SetValue("DisplayName","PavPDF");key.SetValue("DisplayVersion","1.0.0");key.SetValue("Publisher","paveldamon");key.SetValue("InstallLocation",app);key.SetValue("DisplayIcon",Path.Combine(app,"PavPDF.exe"));key.SetValue("UninstallString","\""+Path.Combine(InstallRoot,"Uninstall.exe")+"\" --uninstall");key.SetValue("URLInfoAbout","https://github.com/paveldamon/PavPDF");key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
+     key.SetValue("DisplayName","PavPDF");key.SetValue("DisplayVersion","1.1.0");key.SetValue("Publisher","paveldamon");key.SetValue("InstallLocation",app);key.SetValue("DisplayIcon",Path.Combine(app,"PavPDF.exe"));key.SetValue("UninstallString","\""+Path.Combine(InstallRoot,"Uninstall.exe")+"\" --uninstall");key.SetValue("URLInfoAbout","https://github.com/paveldamon/PavPDF");key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
     }
    });
    string exe=Path.Combine(InstallRoot,"app","PavPDF.exe");
@@ -102,7 +102,7 @@ class SetupForm:Form {
  async Task Download(){
   ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;
   using(var web=new WebClient()){
-   web.Headers["User-Agent"]="PavPDF-Installer/1.0";
+   web.Headers["User-Agent"]="PavPDF-Installer/1.1";
    string raw;try{raw=await web.DownloadStringTaskAsync("https://api.github.com/repos/paveldamon/PavPDF/releases/latest");}catch(WebException){throw new Exception("Todavía no hay una versión pública disponible en paveldamon/PavPDF, o no hay conexión. Publica PavPDF-Setup.exe y PavPDF-Setup.exe.sha256 en una Release. Mientras tanto, usa el instalador completo.");}
    var data=new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(raw);string url=null,hashUrl=null;
    foreach(Dictionary<string,object> asset in (ArrayList)data["assets"]){string name=(string)asset["name"];if(name=="PavPDF-Setup.exe")url=(string)asset["browser_download_url"];if(name=="PavPDF-Setup.exe.sha256")hashUrl=(string)asset["browser_download_url"];}

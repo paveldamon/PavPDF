@@ -1,9 +1,18 @@
-# PavPDF 1.0
+# PavPDF 1.1
 
-**[Descargar instalador para Windows](https://github.com/paveldamon/PavPDF/releases/latest/download/PavPDF-Setup.exe)** · [Todas las descargas](https://github.com/paveldamon/PavPDF/releases/latest)
+**[Descargar instalador actualizado](https://github.com/paveldamon/PavPDF/releases/latest/download/PavPDF-Setup.exe)** · [Versiones publicadas](https://github.com/paveldamon/PavPDF/releases)
 
 
 Aplicación de escritorio en español para Windows 10/11 de 64 bits. Trabaja localmente con PDF, sin subir los documentos a un servidor.
+
+## Nuevo en 1.1
+
+- Zoom del 25% al 500%, ajuste a página y al ancho, Ctrl + rueda, barras de desplazamiento y movimiento con el botón central.
+- Vista de mayor resolución al ampliar, conservando las coordenadas del área de edición.
+- Detección automática al seleccionar varias palabras: fuente, tamaño en puntos, negrita y cursiva.
+- En PDF digital se lee el nombre y tamaño guardados en el documento. Si hay varios estilos, se muestra el predominante.
+- En escaneos, OCR local de Windows y comparación visual entre fuentes comunes. El resultado se presenta siempre como **estimación**, con confianza media o baja; se puede corregir manualmente.
+- El reemplazo y la inserción de texto utilizan la fuente y el tamaño elegidos; no se limitan a Helvetica.
 
 ## Instalación
 
@@ -30,7 +39,16 @@ Ejecuta **PavPDF-Setup.exe**. Instala para el usuario actual, incluye Python y e
 
 La protección del membrete está activada inicialmente para el 16% superior. Puedes ajustar el porcentaje. Reemplazar texto, añadir texto y borrar áreas rechazan selecciones dentro de esa franja. Al mejorar un escaneo, los píxeles renderizados de la franja se conservan sin aplicarles contraste. El recorte y la inserción de imágenes son herramientas manuales: revisa dónde dibujas el área.
 
-La edición de un escaneo es visual y localizada: selecciona un rectángulo y escribe el reemplazo. No convierte automáticamente el documento en Word ni incluye OCR automático en esta versión. Para mantener un fondo distinto del blanco conviene usar Añadir texto; Reemplazar y Borrar dejan fondo blanco. El texto admite caracteres latinos, incluidos acentos y ñ.
+La edición de un escaneo es visual y localizada: selecciona un rectángulo y escribe el reemplazo. No convierte automáticamente el documento en Word. El OCR se usa únicamente en el área seleccionada para estimar la tipografía; no crea una capa de texto buscable para todo el PDF. Para mantener un fondo distinto del blanco conviene usar Añadir texto; Reemplazar y Borrar dejan fondo blanco. El texto admite caracteres latinos, incluidos acentos y ñ.
+
+## Cómo usar zoom y detección de letra
+
+1. Usa la barra situada encima del documento para elegir el porcentaje, Ajustar página o Ajustar ancho. También puedes usar Ctrl + rueda sobre el documento. La rueda desplaza y el botón central permite arrastrar la vista.
+2. Deja activado **Detectar automáticamente** y dibuja un rectángulo que incluya varias palabras de una misma línea. La detección ajusta la lista de fuentes, los puntos y las casillas Negrita/Cursiva.
+3. Revisa la etiqueta **Datos del PDF** o **Estimación de escaneo**. En una imagen escaneada no es posible garantizar cuál fue la fuente original. Selecciona texto impreso, horizontal y nítido; tablas, sellos, manuscritos y selecciones con muchas fuentes pueden producir resultados poco fiables.
+4. Para conservar una elección manual, desmarca Detectar automáticamente. Puedes solicitar otra lectura con **Detectar letra**.
+
+El reconocimiento de escaneos necesita al menos un idioma OCR instalado en Windows. Si no está disponible, la aplicación lo indica y permite elegir manualmente. Los archivos nunca salen del equipo. Se comparan las fuentes Arial, Arial Narrow, Times New Roman, Calibri, Cambria, Segoe UI, Tahoma, Verdana y Courier New que estén instaladas. Los nombres originales de fuentes digitales se muestran aunque se necesite una fuente sustituta para editar.
 
 ## Cómo cumplir el límite de 10 MB
 
@@ -43,10 +61,10 @@ No existe una reducción arbitraria garantizada sin pérdida para todos los PDF.
 
 ## Publicar en GitHub
 
-La cuenta configurada es **paveldamon** y el repositorio previsto es **PavPDF**. Este paquete no crea ni publica el repositorio por sí solo.
+La cuenta configurada es **paveldamon** y el repositorio previsto es **PavPDF**. El repositorio y la primera versión ya están publicados. Para publicar otra versión:
 
 1. Crea el repositorio público `paveldamon/PavPDF` y sube el código fuente de este paquete, incluidos `src`, `build.ps1`, licencias y documentación.
-2. Crea una Release con etiqueta `v1.0.0`.
+2. Crea una Release con etiqueta `v1.1.0`.
 3. Adjunta con estos nombres exactos: `PavPDF-Setup.exe`, `PavPDF-Setup.exe.sha256`, `PavPDF-Instalar-desde-GitHub.exe` y `PavPDF-Fuentes.zip`.
 4. Al publicar la Release, el instalador pequeño y el botón de actualizaciones podrán encontrarla. No necesitan acceder a tu sesión de Chrome ni guardar tu contraseña.
 

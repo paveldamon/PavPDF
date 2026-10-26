@@ -10,12 +10,17 @@ if (Test-Path -LiteralPath $package) { throw 'Usa una carpeta de compilación nu
 New-Item -ItemType Directory -Path $package | Out-Null
 Copy-Item -LiteralPath $runtimeRoot -Destination (Join-Path $package 'runtime') -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot 'src\engine.py') -Destination $package
+Copy-Item -LiteralPath (Join-Path $projectRoot 'src\typography.py') -Destination $package
 foreach ($name in @('LEEME.html','README.md','LICENSE.txt','build.ps1')) { Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $package }
 Copy-Item -LiteralPath (Join-Path $projectRoot 'src') -Destination (Join-Path $package 'src') -Recurse
 $csc=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $icon=Join-Path $projectRoot 'src\PavPDF.ico'
 & $csc /nologo /target:winexe /platform:x64 "/win32icon:$icon" "/out:$package\PavPDF.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll (Join-Path $projectRoot 'src\PavPDF.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de PavPDF.' }
+$framework=Split-Path -Parent $csc
+$metadata=Join-Path $env:WINDIR 'System32\WinMetadata'
+& $csc /nologo /target:exe /platform:x64 "/out:$package\WindowsOcr.exe" /reference:System.Web.Extensions.dll "/reference:$framework\System.Runtime.WindowsRuntime.dll" "/reference:$framework\System.Runtime.dll" "/reference:$metadata\Windows.Foundation.winmd" "/reference:$metadata\Windows.Globalization.winmd" "/reference:$metadata\Windows.Storage.winmd" "/reference:$metadata\Windows.Graphics.winmd" "/reference:$metadata\Windows.Media.winmd" (Join-Path $projectRoot 'src\WindowsOcr.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del reconocimiento local.' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $payload=Join-Path $buildRoot 'payload.zip'
 [IO.Compression.ZipFile]::CreateFromDirectory($package,$payload,[IO.Compression.CompressionLevel]::Optimal,$false)

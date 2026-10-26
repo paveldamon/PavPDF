@@ -4,6 +4,8 @@ from contextlib import contextmanager
 from pathlib import Path
 import fitz
 from PIL import Image, ImageEnhance, ImageFilter
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+import typography
 
 @contextmanager
 def scratch(prefix):
@@ -112,8 +114,9 @@ def mutate(req):
                         text=req.get('text','')
                         if not text.strip(): raise ValueError('Escribe el texto que deseas insertar.')
                         color=tuple(float(v) for v in req.get('color',[0,0,0]))
+                        font=typography.insertion_font(req)
                         remain=p.insert_textbox(r,text,fontsize=float(req.get('font_size',11)),
-                            fontname='helv',color=color,rotate=p.rotation)
+                            color=color,rotate=p.rotation,**font)
                         if remain<0: raise ValueError('El texto no cabe. Amplía el área o reduce el tamaño de letra.')
         elif action=='number':
             for n,i in enumerate(ids):
@@ -217,8 +220,24 @@ def export(req):
         if req.get('kind')=='extract': d.select(page_indices(req,d))
         return {'output':save(d,req['output'])}
 
+def detect_font(req):
+    with open_pdf(req['input']) as d:
+        p=d[int(req['page'])];area=normalized_rect(p,req['rect'])
+        visual=area*p.rotation_matrix
+        return typography.detect(p,area,visual,scratch,Path(__file__).parent/'WindowsOcr.exe')
+
+def preview(req):
+    with open_pdf(req['input']) as d:
+        p=d[int(req['page'])];dpi=min(300,max(72,int(req.get('dpi',144))))
+        # Limit preview memory for unusually large PDF paper sizes.
+        pixels=p.rect.width*p.rect.height*(dpi/72)**2
+        if pixels>18000000:dpi=max(12,int(dpi*math.sqrt(18000000/pixels)))
+        render_image(p,dpi).save(req['output'])
+        return {'output':req['output'],'dpi':dpi}
+
 def run(req):
-    return {'inspect':inspect,'mutate':mutate,'merge':merge,'compress':compress,'split':split,'export':export}[req['cmd']](req)
+    return {'inspect':inspect,'mutate':mutate,'merge':merge,'compress':compress,'split':split,'export':export,
+            'detect_font':detect_font,'preview':preview}[req['cmd']](req)
 
 if __name__=='__main__':
     response=Path(sys.argv[2])

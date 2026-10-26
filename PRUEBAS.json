@@ -1,6 +1,5 @@
 {
-  "passed": true,
-  "checks": [
+  "regression": [
     "Blancos: protege páginas con texto y detecta hoja vacía",
     "Eliminación mantiene orden y contenido",
     "Reemplazo elimina texto anterior y conserva membrete",
@@ -15,13 +14,33 @@
     "Impide documento vacío",
     "Informe real: detecta las cuatro hojas y divide en partes ≤10 MB"
   ],
-  "integration": "PASS: Windows frontend, 14-page load, 4 blanks, deletion, undo, redo, lossless optimization, previews.",
-  "installer": {
-    "extraction": "passed",
-    "bundled_runtime": "Python 3.12.10, PyMuPDF 1.26.4 / MuPDF 1.26.7, Pillow 11.3.0",
-    "sha256": "verified",
-    "system_installation": "not performed",
-    "github_download": "pending first public release",
-    "ui_review": "initial layout inspected; user stopped Computer Use with Escape"
-  }
+  "typography": [
+    {
+      "expected": "Arial 12",
+      "estimated": "Arial 12.0",
+      "bold": false
+    },
+    {
+      "expected": "Times New Roman 14",
+      "estimated": "Times New Roman 14.0",
+      "bold": false
+    },
+    {
+      "expected": "Arial 16",
+      "estimated": "Arial 16.0",
+      "bold": true
+    },
+    {
+      "expected": "Calibri 11",
+      "estimated": "Calibri 11.0",
+      "bold": false
+    },
+    {
+      "rotation": "coordinates correct",
+      "insertion": "chosen font, size and bold embedded"
+    }
+  ],
+  "version": "1.1.0",
+  "integration": "PASS: Windows frontend, page load, blank detection, deletion, undo, redo, lossless optimization, zoom 200/300%, fit page, scroll coordinates, selection preserved, automatic Arial 12pt detection, high-resolution preview.",
+  "scope": "OCR probado en Windows de este equipo, fuentes comunes y escaneos sintéticos. La detección en documentos reales es aproximada."
 }
