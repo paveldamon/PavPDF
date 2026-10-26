@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "checks": [
+    "Blancos: protege páginas con texto y detecta hoja vacía",
+    "Eliminación mantiene orden y contenido",
+    "Reemplazo elimina texto anterior y conserva membrete",
+    "Protección rechaza cambios en membrete",
+    "Rotación y texto sobre página rotada",
+    "Optimización sin pérdida: píxeles idénticos",
+    "Unión conserva todas las páginas",
+    "División: límite exacto, todas las páginas una sola vez",
+    "Página demasiado grande: error sin entrega incompleta",
+    "Mejora: membrete conserva exactamente sus píxeles renderizados",
+    "Recorte válido",
+    "Impide documento vacío",
+    "Informe real: detecta las cuatro hojas y divide en partes ≤10 MB"
+  ],
+  "integration": "PASS: Windows frontend, 14-page load, 4 blanks, deletion, undo, redo, lossless optimization, previews.",
+  "installer": {
+    "extraction": "passed",
+    "bundled_runtime": "Python 3.12.10, PyMuPDF 1.26.4 / MuPDF 1.26.7, Pillow 11.3.0",
+    "sha256": "verified",
+    "system_installation": "not performed",
+    "github_download": "pending first public release",
+    "ui_review": "initial layout inspected; user stopped Computer Use with Escape"
+  }
+}

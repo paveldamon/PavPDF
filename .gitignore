@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.exe
+*.zip
+dependencies/*.tar.gz
+build/
+dist/
