@@ -1,81 +1,76 @@
-# PavPDF 1.1
+# PavPDF 1.1.5
 
-**[Descargar instalador actualizado](https://github.com/paveldamon/PavPDF/releases/latest/download/PavPDF-Setup.exe)** · [Versiones publicadas](https://github.com/paveldamon/PavPDF/releases)
+Editor de PDF para Windows 10/11 de 64 bits. Los documentos se procesan en el equipo. Descarga el instalador y el código completo en [GitHub Releases](https://github.com/paveldamon/PavPDF/releases/tag/v1.1.5).
 
+## Contenido del código completo
 
-Aplicación de escritorio en español para Windows 10/11 de 64 bits. Trabaja localmente con PDF, sin subir los documentos a un servidor.
+- `src/PavPDF.cs`: interfaz WinForms, visor, zoom y cuadro WPF con corrector ortográfico en español.
+- `src/engine.py`: edición, reconstrucción del fondo, conservación del tono de tinta, organización, compresión y división de PDF.
+- `src/typography.py`: lectura de fuentes y estimación visual de tipografías de escaneos.
+- `src/WindowsOcr.cs`: reconocimiento de texto local de Windows.
+- `src/Installer.cs`: instalador completo, desinstalación e instalador opcional conectado a GitHub.
+- `src/test_*.py` y `src/*Test.cs`: pruebas y casos de regresión.
+- `build.ps1`: compilación del programa y los instaladores.
+- `runtime/`: Python 3.12.10 de 64 bits, PyMuPDF 1.26.4 y Pillow 11.3.0, listo para compilar y ejecutar sin descargarlos de nuevo. Se incluye en el ZIP de código completo.
+- `dependencies/`: fuentes de PyMuPDF y MuPDF, licencias, procedencia y sumas de verificación.
+- `PRUEBAS.json`: resultado de las verificaciones de esta entrega.
 
-## Nuevo en 1.1
+## Instalar
 
-- Zoom del 25% al 500%, ajuste a página y al ancho, Ctrl + rueda, barras de desplazamiento y movimiento con el botón central.
-- Vista de mayor resolución al ampliar, conservando las coordenadas del área de edición.
-- Detección automática al seleccionar varias palabras: fuente, tamaño en puntos, negrita y cursiva.
-- En PDF digital se lee el nombre y tamaño guardados en el documento. Si hay varios estilos, se muestra el predominante.
-- En escaneos, OCR local de Windows y comparación visual entre fuentes comunes. El resultado se presenta siempre como **estimación**, con confianza media o baja; se puede corregir manualmente.
-- El reemplazo y la inserción de texto utilizan la fuente y el tamaño elegidos; no se limitan a Helvetica.
+Guarda tus cambios y cierra PavPDF. Ejecuta `PavPDF-Setup.exe`. Instala para el usuario actual e incluye el motor PDF. Abre PavPDF desde su acceso del escritorio o Inicio. No ejecutes solamente el archivo PavPDF.exe fuera de su carpeta: necesita los archivos que lo acompañan.
 
-## Instalación
+Requiere .NET Framework 4.8 y, para reconocimiento y ortografía, los componentes de idioma español de Windows. Las fuentes se toman de las instaladas en Windows; no se redistribuyen las fuentes comerciales.
 
-Ejecuta **PavPDF-Setup.exe**. Instala para el usuario actual, incluye Python y el motor PDF, crea accesos en Inicio y el escritorio y aparece en Aplicaciones instaladas de Windows. No requiere instalar Python por separado.
+## Cambios de esta entrega
 
-**PavPDF-Instalar-desde-GitHub.exe** es el instalador pequeño: consulta la última Release pública de `paveldamon/PavPDF`, descarga el instalador completo, verifica el SHA-256 publicado y lo abre. Necesita que exista esa Release; el instalador completo funciona antes de publicarla.
+La opción **Conservar fondo del escaneo**, activada por defecto, reconstruye el tono y el grano del papel con muestras claras cercanas al área editada. Reemplaza el relleno blanco en los escaneos y funciona con y sin **Unir texto siguiente**. La reconstrucción es aproximada: conviene revisar documentos con manchas, tramas, tablas o fondos complejos.
 
-## Funciones
+Se mantienen **Igualar tinta del escaneo**, el ajuste de altura, el corrector en español, el zoom y el historial Deshacer/Rehacer. La fuente de un escaneo se estima: revisa especialmente los resultados de confianza baja y ajusta manualmente fuente, negrita y tamaño si hace falta.
 
-- Vista previa de páginas y selección por casillas.
-- Detección conservadora de posibles páginas en blanco. Revisa las marcadas y pulsa Eliminar.
-- Eliminar, girar, subir, bajar, duplicar y extraer páginas.
-- Unir PDF e incorporar imágenes PNG, JPEG o TIFF. Se añaden al final; luego puedes reorganizar páginas.
-- Mejorar contraste de escaneos con franja superior protegida.
-- Editar escaneos dibujando un área y reemplazando su contenido por texto nuevo; añadir texto o borrar áreas.
-- Insertar una imagen, sello o firma que ya tengas como archivo. No genera una firma digital certificada.
-- Recortar, numerar y exportar páginas a PNG.
-- Deshacer y rehacer durante la sesión.
-- Optimización sin pérdida; compresión de imágenes con resolución y calidad elegibles.
-- Dividir en varios PDF de máximo **10.000.000 bytes**, manteniendo el orden y sin recomprimir.
-- Consultar versiones publicadas en GitHub.
+## Reemplazar texto
 
-## Membretes y edición
+1. Abre una copia del PDF y selecciona las palabras originales de una sola línea.
+2. Escribe el reemplazo. Pulsa **Corregir texto** para revisar sugerencias, o usa el menú contextual de una palabra subrayada. La ortografía no decide el significado ni modifica cifras automáticamente.
+3. Deja **Conservar fondo del escaneo**, **Igualar tinta del escaneo** y **Ajustar altura automáticamente** activados.
+4. **Unir texto siguiente** desplaza el resto de la misma línea para cerrar el hueco. Desactívalo en formularios o columnas con posiciones fijas. No redistribuye automáticamente un párrafo completo.
+5. Pulsa **Reemplazar texto**, revisa el resultado con zoom y usa **Guardar copia**.
 
-La protección del membrete está activada inicialmente para el 16% superior. Puedes ajustar el porcentaje. Reemplazar texto, añadir texto y borrar áreas rechazan selecciones dentro de esa franja. Al mejorar un escaneo, los píxeles renderizados de la franja se conservan sin aplicarles contraste. El recorte y la inserción de imágenes son herramientas manuales: revisa dónde dibujas el área.
+El membrete protege inicialmente el 16 % superior. Si la selección entra en esa franja, la aplicación pide autorizar únicamente esa edición. El texto nuevo con tinta suavizada conserva una capa buscable. Al desplazar el resto de una línea escaneada se conservan sus píxeles; su capa OCR previa puede necesitar nuevo reconocimiento.
 
-La edición de un escaneo es visual y localizada: selecciona un rectángulo y escribe el reemplazo. No convierte automáticamente el documento en Word. El OCR se usa únicamente en el área seleccionada para estimar la tipografía; no crea una capa de texto buscable para todo el PDF. Para mantener un fondo distinto del blanco conviene usar Añadir texto; Reemplazar y Borrar dejan fondo blanco. El texto admite caracteres latinos, incluidos acentos y ñ.
+**Añadir texto** conserva lo que existe debajo. **Borrar área** continúa usando un relleno blanco. El fondo reconstruido no recupera la textura original que estaba oculta por las letras; produce una aproximación a partir del papel vecino. La aplicación no garantiza que una modificación sea imperceptible.
 
-## Cómo usar zoom y detección de letra
+## Organizar y preparar archivos de hasta 10 MB
 
-1. Usa la barra situada encima del documento para elegir el porcentaje, Ajustar página o Ajustar ancho. También puedes usar Ctrl + rueda sobre el documento. La rueda desplaza y el botón central permite arrastrar la vista.
-2. Deja activado **Detectar automáticamente** y dibuja un rectángulo que incluya varias palabras de una misma línea. La detección ajusta la lista de fuentes, los puntos y las casillas Negrita/Cursiva.
-3. Revisa la etiqueta **Datos del PDF** o **Estimación de escaneo**. En una imagen escaneada no es posible garantizar cuál fue la fuente original. Selecciona texto impreso, horizontal y nítido; tablas, sellos, manuscritos y selecciones con muchas fuentes pueden producir resultados poco fiables.
-4. Para conservar una elección manual, desmarca Detectar automáticamente. Puedes solicitar otra lectura con **Detectar letra**.
+Puedes unir PDF e imágenes, detectar posibles páginas en blanco, eliminar, girar, mover, duplicar y extraer páginas; recortar, añadir imágenes, numerar y exportar PNG. Revisa las páginas marcadas antes de eliminarlas.
 
-El reconocimiento de escaneos necesita al menos un idioma OCR instalado en Windows. Si no está disponible, la aplicación lo indica y permite elegir manualmente. Los archivos nunca salen del equipo. Se comparan las fuentes Arial, Arial Narrow, Times New Roman, Calibri, Cambria, Segoe UI, Tahoma, Verdana y Courier New que estén instaladas. Los nombres originales de fuentes digitales se muestran aunque se necesite una fuente sustituta para editar.
+**Optimizar sin pérdida** conserva el contenido. **Comprimir escaneos** puede reducir detalle. **Dividir en partes ≤ 10 MB** verifica que cada archivo tenga como máximo 10.000.000 bytes sin recomprimir. Si una página sola supera el límite, primero comprímela. No se garantiza una reducción arbitraria sin pérdida.
 
-## Cómo cumplir el límite de 10 MB
+La mejora de escaneo rasteriza a 240 ppp y puede aumentar el tamaño. Cualquier edición de un documento firmado digitalmente altera la validez de su firma; conserva el archivo original.
 
-1. Abre el documento, elimina las páginas que no necesitas y guarda una copia.
-2. Prueba **Optimizar sin pérdida**. Conserva el contenido, pero la reducción depende del PDF.
-3. Usa **Dividir en partes ≤ 10 MB** para conservar la calidad. No cambia el tamaño del papel ni los píxeles de las imágenes.
-4. Si una sola página supera el límite, el programa lo indica y no entrega partes incompletas. Usa **Comprimir escaneos**, revisa su legibilidad y vuelve a dividir.
+## Compilar desde este ZIP
 
-No existe una reducción arbitraria garantizada sin pérdida para todos los PDF. La compresión JPEG puede reducir detalle; el modo sin pérdida y la división permiten evitar esa degradación. La mejora del escaneo rasteriza las páginas seleccionadas a 240 ppp y puede aumentar el tamaño. Las marcas de firma o sellos visibles se preservan en la imagen, pero cualquier edición invalida las firmas digitales certificadas.
+Extrae todo el ZIP en una carpeta con espacio libre. No hace falta Visual Studio: se usa el compilador de .NET Framework y WinMetadata de Windows. La carpeta `runtime` debe permanecer completa.
 
-## Publicar en GitHub
+Abre PowerShell en esa carpeta y ejecuta:
 
-La cuenta configurada es **paveldamon** y el repositorio previsto es **PavPDF**. El repositorio y la primera versión ya están publicados. Para publicar otra versión:
+```powershell
+$project = (Get-Location).Path
+& ([scriptblock]::Create([IO.File]::ReadAllText((Join-Path $project 'build.ps1')))) -RuntimePath (Join-Path $project 'runtime') -ProjectDirectory $project -BuildDirectory (Join-Path $project ('build-' + [guid]::NewGuid().ToString('N')))
+```
 
-1. Crea el repositorio público `paveldamon/PavPDF` y sube el código fuente de este paquete, incluidos `src`, `build.ps1`, licencias y documentación.
-2. Crea una Release con etiqueta `v1.1.0`.
-3. Adjunta con estos nombres exactos: `PavPDF-Setup.exe`, `PavPDF-Setup.exe.sha256`, `PavPDF-Instalar-desde-GitHub.exe` y `PavPDF-Fuentes.zip`.
-4. Al publicar la Release, el instalador pequeño y el botón de actualizaciones podrán encontrarla. No necesitan acceder a tu sesión de Chrome ni guardar tu contraseña.
+El script compila PavPDF.exe y WindowsOcr.exe; genera PavPDF-Setup.exe, su SHA-256, el instalador conectado y PavPDF-Fuentes.zip. Usa una carpeta de compilación nueva en cada ejecución. El script no publica ni descarga nada.
 
-Los ejecutables no tienen firma Authenticode. La comprobación SHA-256 verifica integridad frente al archivo publicado en la misma Release; no sustituye una firma de editor.
+Para verificar el motor desde el código completo:
 
-## Compilar
+```powershell
+New-Item -ItemType Directory -Force work-tests | Out-Null
+.\runtime\python.exe .\src\run_tests.py --scratch .\work-tests --output .\PRUEBAS-nuevas.json
+```
 
-Necesita el compilador de .NET Framework incluido en Windows, un directorio con Python 3.12 embebido de 64 bits, PyMuPDF 1.26.4 y Pillow 11.3.0. Ejecuta `build.ps1 -RuntimePath RUTA_DEL_RUNTIME`. El script no descarga dependencias. El instalador incluye el runtime listo para usar. Para reconstruir con exactamente las dependencias distribuidas, puedes extraerlo con `PavPDF-Setup.exe --extract CARPETA_NUEVA` y usar la subcarpeta `runtime`.
+Para agregar las pruebas de detección con OCR, añade `--ocr RUTA_DEL_PAQUETE\\WindowsOcr.exe` después de compilar. Los ensayos C# conservan sus argumentos documentados en `src/PRUEBAS-UI.md`. El corrector de Windows debe probarse en una sesión de escritorio normal; un entorno restringido puede impedir que se active.
 
-Las fuentes correspondientes se incluyen también dentro de la aplicación instalada. `src/test_engine.py` prueba integridad de páginas, membretes, redacción, compresión y límites de división. Los resultados de la ejecución local están en `PRUEBAS.json`.
+## GitHub y licencias
 
-## Licencias
+El repositorio configurado es [paveldamon/PavPDF](https://github.com/paveldamon/PavPDF). El botón de actualizaciones consulta la última versión pública. `PavPDF-Instalar-desde-GitHub.exe` descarga el instalador de la última versión publicada y verifica su SHA-256. No contiene contraseñas ni necesita la sesión de Chrome. Para compilar desde una copia del repositorio, descarga `PavPDF-Fuentes.zip` de la misma Release: incluye el runtime y las fuentes de las dependencias que no se guardan en Git.
 
-PavPDF se distribuye bajo AGPL-3.0-or-later. PyMuPDF/MuPDF tiene licencia AGPL; Python y Pillow conservan sus licencias incluidas en el runtime. Consulta `LICENSE.txt` y los avisos del runtime. Fuentes de las dependencias: [CPython 3.12.10](https://github.com/python/cpython/tree/v3.12.10), [PyMuPDF 1.26.4](https://github.com/pymupdf/PyMuPDF/tree/1.26.4), [Pillow 11.3.0](https://github.com/python-pillow/Pillow/tree/11.3.0).
+PavPDF: AGPL-3.0-or-later, texto completo en `LICENSE.txt`. PyMuPDF y MuPDF: fuentes y avisos en `dependencies/`. Python y Pillow conservan sus licencias en `runtime/`. Los ejecutables no incluyen firma Authenticode.

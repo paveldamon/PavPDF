@@ -1,5 +1,5 @@
 """Local PDF font inspection and explicitly approximate scan matching. AGPL-3.0-or-later."""
-import os, re, io, json, math, subprocess, statistics
+import os, re, io, json, math, subprocess, statistics, hashlib
 from pathlib import Path
 from collections import Counter
 import fitz
@@ -30,7 +30,7 @@ def font_path(family,bold=False,italic=False):
 def insertion_font(req):
     family=req.get('font_family','Helvetica');bold=req.get('bold',False);italic=req.get('italic',False)
     path=font_path(family,bold,italic)
-    if path:return dict(fontname='PavFont',fontfile=path)
+    if path:return dict(fontname='PavFont'+hashlib.sha256(path.lower().encode()).hexdigest()[:12],fontfile=path)
     if family not in BASE:
         raise ValueError('La fuente o variante elegida no está instalada. Selecciona otra fuente.')
     return dict(fontname=BASE[family][int(bool(bold))+2*int(bool(italic))])
@@ -49,13 +49,18 @@ def identify(name):
     return 'Arial'
 
 def digital(p,area):
+    # Invisible OCR describes the search layer, not the visible scanned font.
+    hidden=[fitz.Rect(t['bbox']) for t in p.get_texttrace()
+            if t['type']==3 or t.get('opacity',1)==0]
     spans=[]
     for block in p.get_text('dict',flags=fitz.TEXTFLAGS_TEXT)['blocks']:
         for line in block.get('lines',[]):
             for s in line['spans']:
                 box=fitz.Rect(s['bbox']);inter=box&area
                 if s['text'].strip() and inter.width>0 and inter.height>0 and inter.get_area()/max(1,box.get_area())>.2:
+                    if s.get('alpha',255)==0:continue
                     if 'glyphless' in s['font'].lower():return None
+                    if any((box&h).get_area()>.8*box.get_area() for h in hidden):continue
                     spans.append((s,max(1,len(s['text'].strip()))*inter.get_area()/max(1,box.get_area())))
     if not spans:return None
     groups=Counter()

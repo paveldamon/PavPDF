@@ -1,46 +1,100 @@
 {
-  "regression": [
-    "Blancos: protege páginas con texto y detecta hoja vacía",
-    "Eliminación mantiene orden y contenido",
-    "Reemplazo elimina texto anterior y conserva membrete",
-    "Protección rechaza cambios en membrete",
-    "Rotación y texto sobre página rotada",
-    "Optimización sin pérdida: píxeles idénticos",
-    "Unión conserva todas las páginas",
-    "División: límite exacto, todas las páginas una sola vez",
-    "Página demasiado grande: error sin entrega incompleta",
-    "Mejora: membrete conserva exactamente sus píxeles renderizados",
-    "Recorte válido",
-    "Impide documento vacío",
-    "Informe real: detecta las cuatro hojas y divide en partes ≤10 MB"
-  ],
-  "typography": [
+  "version": "1.1.5",
+  "suites": [
     {
-      "expected": "Arial 12",
-      "estimated": "Arial 12.0",
-      "bold": false
+      "suite": "test_engine",
+      "status": "PASS",
+      "seconds": 4.03,
+      "details": [
+        "Blancos: protege páginas con texto y detecta hoja vacía",
+        "Eliminación mantiene orden y contenido",
+        "Reemplazo elimina texto anterior y conserva membrete",
+        "Protección rechaza cambios en membrete",
+        "Rotación y texto sobre página rotada",
+        "Optimización sin pérdida: píxeles idénticos",
+        "Unión conserva todas las páginas",
+        "División: límite exacto, todas las páginas una sola vez",
+        "Página demasiado grande: error sin entrega incompleta",
+        "Mejora: membrete conserva exactamente sus píxeles renderizados",
+        "Recorte válido",
+        "Impide documento vacío"
+      ]
     },
     {
-      "expected": "Times New Roman 14",
-      "estimated": "Times New Roman 14.0",
-      "bold": false
+      "suite": "test_edit_regression",
+      "status": "PASS",
+      "seconds": 1.03
     },
     {
-      "expected": "Arial 16",
-      "estimated": "Arial 16.0",
-      "bold": true
+      "suite": "test_gap",
+      "status": "PASS",
+      "seconds": 3.59
     },
     {
-      "expected": "Calibri 11",
-      "estimated": "Calibri 11.0",
-      "bold": false
+      "suite": "test_height",
+      "status": "PASS",
+      "seconds": 0.95
     },
     {
-      "rotation": "coordinates correct",
-      "insertion": "chosen font, size and bold embedded"
+      "suite": "test_tone",
+      "status": "PASS",
+      "seconds": 1.45
+    },
+    {
+      "suite": "test_paper",
+      "status": "PASS",
+      "seconds": 17.23
+    },
+    {
+      "suite": "test_typography",
+      "status": "PASS",
+      "seconds": 8.27,
+      "details": [
+        {
+          "expected": "Arial 12",
+          "estimated": "Arial 12.0",
+          "bold": false
+        },
+        {
+          "expected": "Times New Roman 14",
+          "estimated": "Times New Roman 14.0",
+          "bold": false
+        },
+        {
+          "expected": "Arial 16",
+          "estimated": "Arial 16.0",
+          "bold": true
+        },
+        {
+          "expected": "Calibri 11",
+          "estimated": "Calibri 11.0",
+          "bold": false
+        },
+        {
+          "rotation": "coordinates correct",
+          "insertion": "chosen font, size and bold embedded"
+        }
+      ]
     }
   ],
-  "version": "1.1.0",
-  "integration": "PASS: Windows frontend, page load, blank detection, deletion, undo, redo, lossless optimization, zoom 200/300%, fit page, scroll coordinates, selection preserved, automatic Arial 12pt detection, high-resolution preview.",
-  "scope": "OCR probado en Windows de este equipo, fuentes comunes y escaneos sintéticos. La detección en documentos reales es aproximada."
+  "passed": 7,
+  "failed": 0,
+  "date": "2026-10-28",
+  "interface": {
+    "status": "PASS",
+    "details": "PASS: real 5-page PDF, page 1, zoom and scroll, automatic height and paper background enabled, AreaEdit replacement, undo and redo."
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "pymupdf": "1.26.4",
+    "mupdf": "1.26.7",
+    "pillow": "11.3.0"
+  },
+  "notes": [
+    "La revisión ortográfica en español se verificó en una sesión de Windows en la versión 1.1.4. Su código no cambia en 1.1.5.",
+    "La textura reconstruida es aproximada; no garantiza que una edición sea imperceptible.",
+    "Pruebas sin publicar archivos en GitHub. Los documentos del usuario no forman parte del archivo de código."
+  ],
+  "tested_build": "1.1.5-local",
+  "publication": "Mismo motor y funciones que la versión local probada; se actualizan únicamente las etiquetas de versión y las instrucciones de publicación."
 }

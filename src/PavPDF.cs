@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Net;
 
+[assembly: System.Windows.Media.DisableDpiAwareness]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8")]
 static class Program {
  [STAThread] static void Main(string[] args) {
   Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false);
@@ -66,21 +68,21 @@ class PageCanvas:ScrollableControl {
 }
 class MainForm:Form {
  const string Repo="paveldamon/PavPDF";
- const string Version="1.1.0";
+ const string Version="1.1.5";
  JavaScriptSerializer json=new JavaScriptSerializer(){MaxJsonLength=50000000};
  string root=Path.Combine(Path.GetTempPath(),"PavPDF-"+Guid.NewGuid().ToString("N")),current,original;
  List<string> history=new List<string>(); int historyPos=-1,revision=0;
  ListView pages=new ListView(); ImageList thumbs=new ImageList(); PageCanvas canvas=new PageCanvas();
  Label status=new Label(), docTitle=new Label(),count=new Label();
  FlowLayoutPanel tools=new FlowLayoutPanel(),top=new FlowLayoutPanel();
- TextBox editText=new TextBox(); NumericUpDown fontSize=new NumericUpDown(), header=new NumericUpDown();
- CheckBox protect=new CheckBox(),autoFont=new CheckBox(),fontBold=new CheckBox(),fontItalic=new CheckBox(); Panel editor=new Panel();
+ SpellTextBox editText=new SpellTextBox(); NumericUpDown fontSize=new NumericUpDown(), header=new NumericUpDown();
+ CheckBox matchPaper=new CheckBox(),autoFit=new CheckBox(),matchInk=new CheckBox(),closeGap=new CheckBox(),protect=new CheckBox(),autoFont=new CheckBox(),fontBold=new CheckBox(),fontItalic=new CheckBox(); Panel editor=new Panel();
  ComboBox fontFamily=new ComboBox(),zoomChoice=new ComboBox();Label fontInfo=new Label();
  System.Windows.Forms.Timer fontTimer=new System.Windows.Forms.Timer(){Interval=350},previewTimer=new System.Windows.Forms.Timer(){Interval=300};
  bool updatingZoom=false;int previewDpi=105;
  bool busy=false,dirty=false; HashSet<string> sourceFiles=new HashSet<string>(StringComparer.OrdinalIgnoreCase); List<Dictionary<string,object>> infos=new List<Dictionary<string,object>>();
  public MainForm(string initial){
-  Text="PavPDF 1.1 · Documentos claros, trabajo simple"; Width=1370;Height=900;MinimumSize=new Size(1120,720);StartPosition=FormStartPosition.CenterScreen;
+  Text="PavPDF 1.1.5 · Documentos claros, trabajo simple"; Width=1370;Height=900;MinimumSize=new Size(1120,720);StartPosition=FormStartPosition.CenterScreen;
   Font=new Font("Segoe UI",10);BackColor=Color.White;Directory.CreateDirectory(root);
   try{Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath);}catch{}
   var headerBar=new Panel(){Dock=DockStyle.Top,Height=82,BackColor=Color.FromArgb(15,34,58)};
@@ -121,7 +123,7 @@ class MainForm:Form {
   zoomChoice.SelectedIndexChanged+=(s,e)=>{if(updatingZoom)return;string value=Convert.ToString(zoomChoice.SelectedItem);canvas.SetZoom(value=="Ajustar página"?0:value=="Ajustar ancho"?-1:int.Parse(value.TrimEnd('%')));};
   canvas.ZoomChanged+=(s,e)=>{updatingZoom=true;string value=canvas.ZoomPercent==0?"Ajustar página":canvas.ZoomPercent==-1?"Ajustar ancho":canvas.ZoomPercent+"%";if(!zoomChoice.Items.Contains(value))zoomChoice.Items.Add(value);zoomChoice.SelectedItem=value;updatingZoom=false;previewTimer.Stop();previewTimer.Start();};
   zoomBar.Controls.AddRange(new Control[]{minus,zoomChoice,plus,new Label(){Text="Ctrl + rueda: zoom · Rueda: desplazar · Botón central: mover",AutoSize=true,Padding=new Padding(6,6,0,0),Font=new Font("Segoe UI",8)}});
-  editor.Dock=DockStyle.Bottom;editor.Height=220;editor.Padding=new Padding(10);editor.BackColor=Color.FromArgb(245,248,252);
+  editor.Dock=DockStyle.Bottom;editor.Height=270;editor.Padding=new Padding(10);editor.BackColor=Color.FromArgb(245,248,252);
   var instructions=new Label(){Text="EDITAR TEXTO  ·  Dibuja un área sobre las palabras que quieres editar.",Location=new Point(12,6),AutoSize=true};
   var fontRow=new FlowLayoutPanel(){Location=new Point(8,29),Height=33,Width=850};
   fontFamily.Width=155;fontFamily.DropDownStyle=ComboBoxStyle.DropDownList;fontFamily.Items.AddRange(new object[]{"Arial","Arial Narrow","Times New Roman","Calibri","Cambria","Segoe UI","Tahoma","Verdana","Courier New","Helvetica","Times-Roman","Courier"});fontFamily.SelectedItem="Helvetica";
@@ -129,14 +131,20 @@ class MainForm:Form {
   fontBold.Text="Negrita";fontBold.Width=76;fontItalic.Text="Cursiva";fontItalic.Width=76;autoFont.Text="Detectar automáticamente";autoFont.Checked=true;autoFont.Width=205;
   fontRow.Controls.AddRange(new Control[]{fontFamily,fontSize,new Label(){Text="pt",AutoSize=true,Padding=new Padding(0,5,0,0)},fontBold,fontItalic,autoFont});
   fontInfo.Text="Selecciona palabras para detectar la fuente y el tamaño.";fontInfo.SetBounds(12,64,800,24);fontInfo.Font=new Font("Segoe UI",9);fontInfo.ForeColor=Color.FromArgb(36,88,130);fontInfo.AutoEllipsis=true;
-  editText.Location=new Point(12,91);editText.Size=new Size(480,51);editText.Multiline=true;editText.ScrollBars=ScrollBars.Vertical;
-  protect.Text="Proteger membrete";protect.Checked=true;protect.Location=new Point(12,185);protect.Width=170;
-  header.Minimum=0;header.Maximum=45;header.Value=16;header.Width=50;header.Location=new Point(185,184);
-  var headerLabel=new Label(){Text="% superior",Location=new Point(240,187),AutoSize=true};
-  var editButtons=new FlowLayoutPanel(){Location=new Point(8,148),Width=650,Height=33};
+  editText.Location=new Point(12,116);editText.Size=new Size(480,51);
+  protect.Text="Proteger membrete";protect.Checked=true;protect.Location=new Point(12,210);protect.Width=170;
+  header.Minimum=0;header.Maximum=45;header.Value=16;header.Width=50;header.Location=new Point(185,209);
+  closeGap.Text="Unir texto siguiente";closeGap.Checked=true;closeGap.Location=new Point(335,210);closeGap.Width=220;
+  matchInk.Text="Igualar tinta del escaneo";matchInk.Checked=true;matchInk.Location=new Point(560,210);matchInk.Width=240;
+  autoFit.Text="Ajustar altura automáticamente";autoFit.Checked=true;autoFit.Location=new Point(12,239);autoFit.Width=285;
+  matchPaper.Text="Conservar fondo del escaneo";matchPaper.Checked=true;matchPaper.Location=new Point(310,239);matchPaper.Width=290;
+  var spelling=new Button(){Text="Corregir texto",Location=new Point(12,85),Width=145,Height=27};spelling.Click+=(s,e)=>editText.Review();
+  var spellingHint=new Label(){Text="Español: clic derecho sobre una palabra subrayada para ver sugerencias.",Location=new Point(167,91),AutoSize=true,Font=new Font("Segoe UI",8)};
+  var headerLabel=new Label(){Text="% superior",Location=new Point(240,212),AutoSize=true};
+  var editButtons=new FlowLayoutPanel(){Location=new Point(8,173),Width=650,Height=33};
   foreach(var pair in new[]{new[]{"Reemplazar texto","edit"},new[]{"Añadir texto","text"},new[]{"Borrar área","redact"}}){string act=pair[1];var b=new Button(){Text=pair[0],Width=145,Height=29};b.Click+=async(s,e)=>await Safe(async()=>await AreaEdit(act));editButtons.Controls.Add(b);}
   var detectFontButton=new Button(){Text="Detectar letra",Width=135,Height=29};detectFontButton.Click+=async(s,e)=>await Safe(async()=>await DetectFont());editButtons.Controls.Add(detectFontButton);
-  editor.Controls.AddRange(new Control[]{instructions,fontRow,fontInfo,editText,protect,header,headerLabel,editButtons});
+  editor.Controls.AddRange(new Control[]{instructions,fontRow,fontInfo,editText,protect,header,headerLabel,editButtons,closeGap,matchInk,autoFit,spelling,spellingHint,matchPaper});
   editor.SizeChanged+=(s,e)=>{editText.Width=Math.Max(100,editor.ClientSize.Width-24);fontInfo.Width=editor.ClientSize.Width-24;fontRow.Width=editor.ClientSize.Width-16;};
   canvas.AreaSelected+=(s,e)=>{fontTimer.Stop();if(autoFont.Checked)fontTimer.Start();};
   fontTimer.Tick+=async(s,e)=>{fontTimer.Stop();if(!busy&&current!=null)await DetectFont();};
@@ -161,6 +169,7 @@ class MainForm:Form {
  Dictionary<string,object> Request(string cmd){return new Dictionary<string,object>{{"cmd",cmd},{"input",current}};}
  string Next(){return Path.Combine(root,"document_"+(++revision)+".pdf");}
  async Task<Dictionary<string,object>> Engine(Dictionary<string,object> request,string message){
+  if(!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"runtime","python.exe"))||!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"engine.py")))throw new Exception("Faltan componentes de PavPDF. Instala el paquete completo; no ejecutes el archivo de la aplicación por separado.");
   busy=true;tools.Enabled=false;top.Enabled=false;editor.Enabled=false;pages.Enabled=false;canvas.Enabled=false;status.Text=message;UseWaitCursor=true;
   try{return await Task.Run(()=>{
    string id=Guid.NewGuid().ToString("N"),req=Path.Combine(root,id+".json"),res=Path.Combine(root,id+".result.json");File.WriteAllText(req,json.Serialize(request),new System.Text.UTF8Encoding(false));
@@ -190,12 +199,18 @@ class MainForm:Form {
  async Task Undo(int delta){if(historyPos+delta<0||historyPos+delta>=history.Count)return;historyPos+=delta;current=history[historyPos];dirty=true;await Refresh(0);}
  void Detect(){Require();int n=0;for(int i=0;i<pages.Items.Count;i++){bool blank=(bool)infos[i]["blank"];pages.Items[i].Checked=blank;if(blank)n++;}status.Text=n+" posibles páginas en blanco marcadas. Revisa las miniaturas antes de eliminar.";if(n>0)pages.Items[pages.CheckedIndices[0]].Selected=true;}
  async Task Delete(){var ids=SelectedPages();if(MessageBox.Show("¿Eliminar "+ids.Length+" página(s) de esta copia? Puedes deshacer el cambio.","PavPDF",MessageBoxButtons.YesNo,MessageBoxIcon.Question)==DialogResult.Yes)await Change("delete",null);}
- async Task Change(string action,Dictionary<string,object> extra){Require();int idx=Selected();var req=Request("mutate");req["action"]=action;req["pages"]=SelectedPages();req["output"]=Next();if(extra!=null)foreach(var kv in extra)req[kv.Key]=kv.Value;await Engine(req,"Aplicando cambios…");await Commit((string)req["output"],idx);}
+ async Task Change(string action,Dictionary<string,object> extra){Require();int idx=Selected();var req=Request("mutate");req["action"]=action;req["pages"]=SelectedPages();req["output"]=Next();if(extra!=null)foreach(var kv in extra)req[kv.Key]=kv.Value;var result=await Engine(req,"Aplicando cambios…");await Commit((string)req["output"],idx);
+  if(result.ContainsKey("font_sizes")){var sizes=result["font_sizes"] as System.Collections.ArrayList;if(sizes!=null&&sizes.Count>0){fontSize.Value=Math.Max(fontSize.Minimum,Math.Min(fontSize.Maximum,Convert.ToDecimal(sizes[0])));fontInfo.Text="Reemplazo aplicado a "+fontSize.Value.ToString("0.##")+" pt; altura ajustada a la línea.";}}}
  async Task MovePage(int direction){int i=Selected(),to=i+direction;if(to<0||to>=infos.Count)return;var order=Enumerable.Range(0,infos.Count).ToArray();order[i]=to;order[to]=i;await Change("reorder",new Dictionary<string,object>{{"order",order}});pages.Items[to].Selected=true;}
  async Task Enhance(){Require();if(MessageBox.Show("Mejora el contraste de las páginas marcadas (o la actual). Conserva el área superior protegida. La página se convierte en imagen a 240 ppp; guarda una copia para revisar el resultado.","Mejorar escaneo",MessageBoxButtons.OKCancel)==DialogResult.OK)await Change("enhance",new Dictionary<string,object>{{"protect_header",protect.Checked},{"protect",(double)header.Value/100}});}
- async Task AreaEdit(string action){Require();if(canvas.Area.Width<.005||canvas.Area.Height<.005)throw new Exception("Dibuja primero un rectángulo sobre la página.");var r=canvas.Area;var extra=new Dictionary<string,object>{{"rect",new[]{r.X,r.Y,r.Width,r.Height}},{"text",editText.Text},{"font_size",fontSize.Value},{"font_family",fontFamily.SelectedItem.ToString()},{"bold",fontBold.Checked},{"italic",fontItalic.Checked},{"protect_header",protect.Checked},{"protect",(double)header.Value/100},{"pages",new[]{Selected()}}};
+ async Task AreaEdit(string action){Require();if(canvas.Area.Width<.005||canvas.Area.Height<.005)throw new Exception("Dibuja primero un rectángulo sobre la página.");var r=canvas.Area;var extra=new Dictionary<string,object>{{"rect",new[]{r.X,r.Y,r.Width,r.Height}},{"close_gap",closeGap.Checked},{"match_ink",matchInk.Checked},{"auto_fit",autoFit.Checked},{"match_paper",matchPaper.Checked},{"text",editText.Text},{"font_size",fontSize.Value},{"font_family",fontFamily.SelectedItem.ToString()},{"bold",fontBold.Checked},{"italic",fontItalic.Checked},{"protect_header",protect.Checked},{"protect",(double)header.Value/100},{"pages",new[]{Selected()}}};
   if(action=="image")using(var dlg=new OpenFileDialog(){Filter="Imágenes|*.png;*.jpg;*.jpeg"}){if(dlg.ShowDialog()!=DialogResult.OK)return;extra["image"]=dlg.FileName;}
+  if((action=="edit"||action=="text"||action=="redact")&&protect.Checked&&r.Y<(float)header.Value/100){
+   if(MessageBox.Show(this,"La selección está dentro del "+header.Value+" % superior protegido. ¿Permitir este cambio solo en el rectángulo seleccionado? El resto del membrete seguirá protegido.","Selección dentro del membrete",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)!=DialogResult.Yes)return;
+   extra["protect_header"]=false;
+  }
   await Change(action,extra);
+  if(action=="edit")status.Text="Texto reemplazado. Revisa la página y pulsa Guardar copia para conservar el cambio.";
  }
  async Task DetectFont(){
   if(current==null||busy)return;var r=canvas.Area;if(r.Width<.005||r.Height<.005)return;
@@ -232,5 +247,43 @@ class CompressDialog:Form {
   Controls.Add(new Label(){Text="Resolución (ppp)",Location=new Point(20,85),AutoSize=true});Dpi.Location=new Point(220,80);Dpi.Minimum=100;Dpi.Maximum=600;Dpi.Value=240;
   Controls.Add(new Label(){Text="Calidad JPEG",Location=new Point(20,125),AutoSize=true});Quality.Location=new Point(220,120);Quality.Minimum=40;Quality.Maximum=100;Quality.Value=88;
   var ok=new Button(){Text="Aplicar",DialogResult=DialogResult.OK,Location=new Point(220,175),Width=90};var cancel=new Button(){Text="Cancelar",DialogResult=DialogResult.Cancel,Location=new Point(115,175),Width=90};Controls.AddRange(new Control[]{Dpi,Quality,ok,cancel});AcceptButton=ok;CancelButton=cancel;
+ }
+}
+
+// Spanish spelling suggestions run locally through the Windows/WPF dictionary.
+class SpellTextBox : System.Windows.Forms.Integration.ElementHost {
+ public readonly System.Windows.Controls.TextBox Editor;
+ public SpellTextBox(){
+  Editor=new System.Windows.Controls.TextBox();
+  Editor.AcceptsReturn=true;Editor.TextWrapping=System.Windows.TextWrapping.Wrap;
+  Editor.VerticalScrollBarVisibility=System.Windows.Controls.ScrollBarVisibility.Auto;
+  Editor.FontSize=14;Editor.FontFamily=new System.Windows.Media.FontFamily("Segoe UI");
+  Editor.Language=System.Windows.Markup.XmlLanguage.GetLanguage("es-ES");
+  Editor.SpellCheck.IsEnabled=true;Child=Editor;
+ }
+ public override string Text {get{return Editor==null?"":Editor.Text;}set{if(Editor!=null)Editor.Text=value??"";}}
+ public void Review(){
+  int index=Editor.GetNextSpellingErrorCharacterIndex(0,System.Windows.Documents.LogicalDirection.Forward);
+  if(index<0){System.Windows.Forms.MessageBox.Show("No se encontraron faltas de ortografía. Revisa también nombres, cifras y el sentido del texto.","Revisar texto");return;}
+  var dialog=new System.Windows.Forms.Form(){Text="Corregir texto · Español",Width=460,Height=330,StartPosition=System.Windows.Forms.FormStartPosition.CenterParent,MinimizeBox=false,MaximizeBox=false};
+  var label=new System.Windows.Forms.Label(){Left=15,Top=15,Width=415,Height=40};
+  var choices=new System.Windows.Forms.ListBox(){Left=15,Top=60,Width=415,Height=160};
+  var apply=new System.Windows.Forms.Button(){Text="Aplicar sugerencia",Left=15,Top=235,Width=145};
+  var skip=new System.Windows.Forms.Button(){Text="Omitir",Left=170,Top=235,Width=110};
+  var close=new System.Windows.Forms.Button(){Text="Cerrar",Left=290,Top=235,Width=140};
+  System.Action show=null;
+  show=()=>{
+   if(index<0){dialog.Close();return;}
+   int length=Editor.GetSpellingErrorLength(index);var error=Editor.GetSpellingError(index);
+   if(error==null||length<=0){dialog.Close();return;}
+   label.Text="Revisar: "+Editor.Text.Substring(index,length);choices.Items.Clear();
+   foreach(string suggestion in error.Suggestions)choices.Items.Add(suggestion);
+   if(choices.Items.Count>0)choices.SelectedIndex=0;apply.Enabled=choices.Items.Count>0;
+   Editor.Select(index,length);
+  };
+  apply.Click+=(s,e)=>{if(choices.SelectedItem==null)return;int length=Editor.GetSpellingErrorLength(index);string value=choices.SelectedItem.ToString();Editor.Select(index,length);Editor.SelectedText=value;index=Editor.GetNextSpellingErrorCharacterIndex(index+value.Length,System.Windows.Documents.LogicalDirection.Forward);show();};
+  skip.Click+=(s,e)=>{index=Editor.GetNextSpellingErrorCharacterIndex(index+System.Math.Max(1,Editor.GetSpellingErrorLength(index)),System.Windows.Documents.LogicalDirection.Forward);show();};
+  close.Click+=(s,e)=>dialog.Close();dialog.Controls.AddRange(new System.Windows.Forms.Control[]{label,choices,apply,skip,close});
+  show();dialog.ShowDialog(this.FindForm());dialog.Dispose();
  }
 }
