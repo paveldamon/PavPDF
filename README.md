@@ -1,6 +1,6 @@
-# PavPDF 1.1.5
+# PavPDF 1.1.6
 
-Editor de PDF para Windows 10/11 de 64 bits. Los documentos se procesan en el equipo. Descarga el instalador y el código completo en [GitHub Releases](https://github.com/paveldamon/PavPDF/releases/tag/v1.1.5).
+Editor de PDF para Windows 10/11 de 64 bits. Los documentos se procesan en el equipo. Consulta los instaladores disponibles en [GitHub Releases](https://github.com/paveldamon/PavPDF/releases). El código del repositorio puede ser más reciente que el último instalador publicado.
 
 ## Contenido del código completo
 
@@ -8,6 +8,7 @@ Editor de PDF para Windows 10/11 de 64 bits. Los documentos se procesan en el eq
 - `src/engine.py`: edición, reconstrucción del fondo, conservación del tono de tinta, organización, compresión y división de PDF.
 - `src/typography.py`: lectura de fuentes y estimación visual de tipografías de escaneos.
 - `src/WindowsOcr.cs`: reconocimiento de texto local de Windows.
+- `src/UpdatePolicy.cs`: comparación de versiones y validación de descargas compartida por el programa y los instaladores.
 - `src/Installer.cs`: instalador completo, desinstalación e instalador opcional conectado a GitHub.
 - `src/test_*.py` y `src/*Test.cs`: pruebas y casos de regresión.
 - `build.ps1`: compilación del programa y los instaladores.
@@ -22,6 +23,10 @@ Guarda tus cambios y cierra PavPDF. Ejecuta `PavPDF-Setup.exe`. Instala para el 
 Requiere .NET Framework 4.8 y, para reconocimiento y ortografía, los componentes de idioma español de Windows. Las fuentes se toman de las instaladas en Windows; no se redistribuyen las fuentes comerciales.
 
 ## Cambios de esta entrega
+
+**Actualizaciones corregidas:** el botón compara los números de versión. Si GitHub ofrece una versión anterior, conserva la instalada y muestra que ya es más reciente. Si son iguales, indica que PavPDF está actualizado. Solo ofrece una descarga cuando la versión es más nueva y están disponibles el instalador y su SHA-256. El enlace abre la versión comprobada. El instalador conectado aplica la misma comprobación; el instalador completo impide retroceder de versión y permite reparar la misma versión.
+
+El código fuente del repositorio y los instaladores de Releases se publican por separado: subir código no convierte esa versión en una actualización descargable.
 
 La opción **Conservar fondo del escaneo**, activada por defecto, reconstruye el tono y el grano del papel con muestras claras cercanas al área editada. Reemplaza el relleno blanco en los escaneos y funciona con y sin **Unir texto siguiente**. La reconstrucción es aproximada: conviene revisar documentos con manchas, tramas, tablas o fondos complejos.
 
@@ -58,7 +63,7 @@ $project = (Get-Location).Path
 & ([scriptblock]::Create([IO.File]::ReadAllText((Join-Path $project 'build.ps1')))) -RuntimePath (Join-Path $project 'runtime') -ProjectDirectory $project -BuildDirectory (Join-Path $project ('build-' + [guid]::NewGuid().ToString('N')))
 ```
 
-El script compila PavPDF.exe y WindowsOcr.exe; genera PavPDF-Setup.exe, su SHA-256, el instalador conectado y PavPDF-Fuentes.zip. Usa una carpeta de compilación nueva en cada ejecución. El script no publica ni descarga nada.
+El script compila PavPDF.exe y WindowsOcr.exe y ejecuta las pruebas de actualizaciones; genera PavPDF-Setup.exe, su SHA-256, el instalador conectado y PavPDF-Fuentes.zip. Usa una carpeta de compilación nueva en cada ejecución. El script no publica ni descarga nada.
 
 Para verificar el motor desde el código completo:
 

@@ -68,7 +68,7 @@ class PageCanvas:ScrollableControl {
 }
 class MainForm:Form {
  const string Repo="paveldamon/PavPDF";
- const string Version="1.1.5";
+ const string Version="1.1.6";
  JavaScriptSerializer json=new JavaScriptSerializer(){MaxJsonLength=50000000};
  string root=Path.Combine(Path.GetTempPath(),"PavPDF-"+Guid.NewGuid().ToString("N")),current,original;
  List<string> history=new List<string>(); int historyPos=-1,revision=0;
@@ -80,9 +80,9 @@ class MainForm:Form {
  ComboBox fontFamily=new ComboBox(),zoomChoice=new ComboBox();Label fontInfo=new Label();
  System.Windows.Forms.Timer fontTimer=new System.Windows.Forms.Timer(){Interval=350},previewTimer=new System.Windows.Forms.Timer(){Interval=300};
  bool updatingZoom=false;int previewDpi=105;
- bool busy=false,dirty=false; HashSet<string> sourceFiles=new HashSet<string>(StringComparer.OrdinalIgnoreCase); List<Dictionary<string,object>> infos=new List<Dictionary<string,object>>();
+ bool checkingUpdates=false,busy=false,dirty=false; HashSet<string> sourceFiles=new HashSet<string>(StringComparer.OrdinalIgnoreCase); List<Dictionary<string,object>> infos=new List<Dictionary<string,object>>();
  public MainForm(string initial){
-  Text="PavPDF 1.1.5 · Documentos claros, trabajo simple"; Width=1370;Height=900;MinimumSize=new Size(1120,720);StartPosition=FormStartPosition.CenterScreen;
+  Text="PavPDF 1.1.6 · Documentos claros, trabajo simple"; Width=1370;Height=900;MinimumSize=new Size(1120,720);StartPosition=FormStartPosition.CenterScreen;
   Font=new Font("Segoe UI",10);BackColor=Color.White;Directory.CreateDirectory(root);
   try{Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath);}catch{}
   var headerBar=new Panel(){Dock=DockStyle.Top,Height=82,BackColor=Color.FromArgb(15,34,58)};
@@ -238,7 +238,27 @@ class MainForm:Form {
   long before=new FileInfo(current).Length;var req=Request("compress");req["mode"]=lossless?"lossless":"images";req["dpi"]=dpi;req["quality"]=quality;req["output"]=Next();var data=await Engine(req,"Optimizando el documento…");await Commit((string)req["output"],0);status.Text="Tamaño: "+(before/1000000d).ToString("0.00")+" → "+(Convert.ToDouble(data["bytes"])/1000000).ToString("0.00")+" MB. Guarda la copia o divídela en partes.";
  }
  async Task Split(){Require();using(var dlg=new FolderBrowserDialog(){Description="Elige una carpeta para las partes de máximo 10 MB"}){if(dlg.ShowDialog()!=DialogResult.OK)return;var req=Request("split");req["max_mb"]=10;req["folder"]=dlg.SelectedPath;var data=await Engine(req,"Separando y verificando el tamaño de cada parte…");status.Text=((ArrayList)data["outputs"]).Count+" PDF creados, cada uno de máximo 10.000.000 bytes.";Process.Start(new ProcessStartInfo(dlg.SelectedPath){UseShellExecute=true});}}
- async Task Updates(){if(busy)return;try{ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;string body=await Task.Run(()=>{using(var client=new WebClient()){client.Headers["User-Agent"]="PavPDF/"+Version;return client.DownloadString("https://api.github.com/repos/"+Repo+"/releases/latest");}});var release=json.Deserialize<Dictionary<string,object>>(body);string tag=Convert.ToString(release["tag_name"]);if(MessageBox.Show("Versión publicada en GitHub: "+tag+"\nVersión instalada: "+Version+"\n\n¿Abrir la página de descarga?","PavPDF",MessageBoxButtons.YesNo)==DialogResult.Yes)Process.Start(new ProcessStartInfo("https://github.com/"+Repo+"/releases/latest"){UseShellExecute=true});}catch{MessageBox.Show("Aún no hay una versión publicada o no se pudo conectar. Repositorio configurado:\nhttps://github.com/"+Repo+"\n\nPuedes usar todas las funciones PDF sin conexión.","PavPDF");}}
+ async Task Updates(){
+  if(busy||checkingUpdates)return;
+  checkingUpdates=true;
+  try{
+   ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;
+   string body=await Task.Run(()=>{using(var client=new WebClient()){
+    client.Headers["User-Agent"]="PavPDF/"+Version;
+    return client.DownloadString("https://api.github.com/repos/"+Repo+"/releases/latest");
+   }});
+   if(IsDisposed)return;
+   var decision=UpdatePolicy.Assess(json.Deserialize<Dictionary<string,object>>(body),Version);
+   if(!decision.CanDownload){
+    MessageBox.Show(this,decision.Message,"PavPDF · Actualizaciones",MessageBoxButtons.OK,MessageBoxIcon.Information);
+    return;
+   }
+   if(MessageBox.Show(this,decision.Message+"\n\n¿Abrir la descarga de esta versión?","PavPDF · Actualizaciones",MessageBoxButtons.YesNo,MessageBoxIcon.Information)==DialogResult.Yes)
+    Process.Start(new ProcessStartInfo(decision.PageUrl){UseShellExecute=true});
+  }catch{
+   if(!IsDisposed)MessageBox.Show(this,"No se pudo comprobar si hay actualizaciones.\n\nPuedes seguir usando PavPDF sin conexión. Intenta nuevamente más tarde.","PavPDF · Actualizaciones",MessageBoxButtons.OK,MessageBoxIcon.Information);
+  }finally{checkingUpdates=false;}
+ }
 }
 class CompressDialog:Form {
  public NumericUpDown Dpi=new NumericUpDown(),Quality=new NumericUpDown();

@@ -8,7 +8,7 @@ parser.add_argument('--output',required=True)
 parser.add_argument('--ocr')
 args=parser.parse_args()
 folder=Path(args.scratch).resolve();folder.mkdir(parents=True,exist_ok=True);tempfile.tempdir=str(folder)
-report={'version':'1.1.5','suites':[]}
+report={'version':'1.1.6','suites':[]}
 for name in ['test_engine','test_edit_regression','test_gap','test_height','test_tone','test_paper']+(['test_typography'] if args.ocr else []):
  start=time.monotonic()
  try:

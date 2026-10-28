@@ -17,19 +17,24 @@ $csc=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $wpf=Join-Path (Split-Path -Parent $csc) "WPF"
 $spellRefs=@("/reference:$wpf\PresentationFramework.dll","/reference:$wpf\PresentationCore.dll","/reference:$wpf\WindowsBase.dll","/reference:$wpf\WindowsFormsIntegration.dll","/reference:System.Xaml.dll")
 $icon=Join-Path $projectRoot 'src\PavPDF.ico'
-& $csc /nologo /target:winexe /platform:x64 "/win32icon:$icon" "/out:$package\PavPDF.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll @spellRefs (Join-Path $projectRoot 'src\PavPDF.cs')
+& $csc /nologo /target:winexe /platform:x64 "/win32icon:$icon" "/out:$package\PavPDF.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll @spellRefs (Join-Path $projectRoot 'src\PavPDF.cs') (Join-Path $projectRoot 'src\UpdatePolicy.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de PavPDF.' }
 $framework=Split-Path -Parent $csc
 $metadata=Join-Path $env:WINDIR 'System32\WinMetadata'
 & $csc /nologo /target:exe /platform:x64 "/out:$package\WindowsOcr.exe" /reference:System.Web.Extensions.dll "/reference:$framework\System.Runtime.WindowsRuntime.dll" "/reference:$framework\System.Runtime.dll" "/reference:$metadata\Windows.Foundation.winmd" "/reference:$metadata\Windows.Globalization.winmd" "/reference:$metadata\Windows.Storage.winmd" "/reference:$metadata\Windows.Graphics.winmd" "/reference:$metadata\Windows.Media.winmd" (Join-Path $projectRoot 'src\WindowsOcr.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del reconocimiento local.' }
+$updateTest=Join-Path $buildRoot 'UpdateTest.exe'
+& $csc /nologo /target:exe /platform:x64 "/out:$updateTest" /reference:System.Web.Extensions.dll (Join-Path $projectRoot 'src\UpdatePolicy.cs') (Join-Path $projectRoot 'src\UpdateTest.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de las pruebas de actualización.' }
+& $updateTest (Join-Path $buildRoot 'update-tests')
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de actualización.' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $payload=Join-Path $buildRoot 'payload.zip'
 [IO.Compression.ZipFile]::CreateFromDirectory($package,$payload,[IO.Compression.CompressionLevel]::Optimal,$false)
 $references=@('/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll','/reference:System.Web.Extensions.dll','/reference:Microsoft.CSharp.dll')
-& $csc /nologo /target:winexe /platform:x64 "/win32icon:$icon" "/out:$projectRoot\PavPDF-Setup.exe" "/resource:$payload,payload.zip" @references (Join-Path $projectRoot 'src\Installer.cs')
+& $csc /nologo /target:winexe /platform:x64 "/win32icon:$icon" "/out:$projectRoot\PavPDF-Setup.exe" "/resource:$payload,payload.zip" @references (Join-Path $projectRoot 'src\Installer.cs') (Join-Path $projectRoot 'src\UpdatePolicy.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del instalador.' }
-& $csc /nologo /target:winexe /platform:x64 /define:ONLINE "/win32icon:$icon" "/out:$projectRoot\PavPDF-Instalar-desde-GitHub.exe" @references (Join-Path $projectRoot 'src\Installer.cs')
+& $csc /nologo /target:winexe /platform:x64 /define:ONLINE "/win32icon:$icon" "/out:$projectRoot\PavPDF-Instalar-desde-GitHub.exe" @references (Join-Path $projectRoot 'src\Installer.cs') (Join-Path $projectRoot 'src\UpdatePolicy.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del instalador conectado.' }
 $hash=(Get-FileHash -LiteralPath (Join-Path $projectRoot 'PavPDF-Setup.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText((Join-Path $projectRoot 'PavPDF-Setup.exe.sha256'),$hash+'  PavPDF-Setup.exe'+[Environment]::NewLine,[Text.Encoding]::ASCII)

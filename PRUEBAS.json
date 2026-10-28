@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "suites": [
     {
       "suite": "test_engine",
@@ -96,5 +96,17 @@
     "Pruebas sin publicar archivos en GitHub. Los documentos del usuario no forman parte del archivo de código."
   ],
   "tested_build": "1.1.5-local",
-  "publication": "Mismo motor y funciones que la versión local probada; se actualizan únicamente las etiquetas de versión y las instrucciones de publicación."
+  "publication": "Motor PDF y OCR sin cambios respecto a 1.1.5; esta entrega corrige la comparación de versiones del programa y de los instaladores.",
+  "updates": {
+    "status": "PASS",
+    "checks": 30,
+    "date": "2026-10-28",
+    "details": [
+      "Caso real: instalada 1.1.5 y GitHub v1.1.0 no ofrece descarga",
+      "Versiones iguales, posteriores, componentes numéricos, pruebas locales y versiones inválidas",
+      "Publicación incompleta, enlaces de otra versión y destinos ajenos rechazados",
+      "Instalador completo impide retroceder y permite reparar la misma versión",
+      "Respuesta real de GitHub v1.1.0 evaluada sin modificar la instalación"
+    ]
+  }
 }
